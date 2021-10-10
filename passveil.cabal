@@ -1,0 +1,119 @@
+cabal-version: 3.4
+name: passveil
+version: 0.1.0.0
+
+-- A short (one-line) description of the package.
+-- synopsis:
+
+-- A longer description of the package.
+-- description:
+
+-- A URL where users can report bugs.
+-- bug-reports:
+
+-- The license under which the package is released.
+-- license:
+author: raichoo
+maintainer: raichoo@antei.de
+description:
+  @passveil@ is a distributed password store using @gpg@ for cryptography and
+  @darcs@ for versioning and distribution.
+
+-- A copyright notice.
+-- copyright:
+-- category:
+extra-source-files: CHANGELOG.md
+
+executable passveil
+    documentation: True
+    ghc-options: -Wall -O2
+    main-is: Main.hs
+
+    -- Modules included in this executable, other than Main.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends: aeson >= 1.5.4 && < 1.6
+                 , ansi-terminal >= 0.11 && < 0.12
+                 , base ^>=4.14.0.0
+                 , bytestring >= 0.10.10 && < 0.11
+                 , containers >= 0.6.2 && < 0.7
+                 , directory >= 1.3.6 && < 1.4
+                 , filepath >= 1.4.2 && < 1.5
+                 , mtl >= 2.2.2 && < 2.3
+                 , optparse-applicative >= 0.16.0 && < 0.17
+                 , passveil
+                 , process >= 1.6.9 && < 1.7
+                 , regex-base >= 0.94.0 && < 0.95
+                 , regex-pcre >= 0.95.0 && < 0.96
+                 , temporary >= 1.3 && < 1.4
+                 , text >= 1.2.3 && < 1.3
+                 , time >= 1.9.3 && < 1.10
+                 , unix >= 2.7.2 && < 2.8
+                 , unordered-containers >= 0.2.12 && < 0.3
+
+    hs-source-dirs: app
+    default-language: Haskell2010
+
+    other-modules: PassVeil
+                 , PassVeil.Command.Allow
+                 , PassVeil.Command.Delete
+                 , PassVeil.Command.Deny
+                 , PassVeil.Command.Distrust
+                 , PassVeil.Command.Edit
+                 , PassVeil.Command.Info
+                 , PassVeil.Command.Init
+                 , PassVeil.Command.Insert
+                 , PassVeil.Command.List
+                 , PassVeil.Command.Move
+                 , PassVeil.Command.Search
+                 , PassVeil.Command.Show
+                 , PassVeil.Command.Sync
+                 , PassVeil.Command.Undo
+                 , PassVeil.Console
+                 , PassVeil.Editor
+                 , PassVeil.Exit
+                 , PassVeil.Options
+                 , PassVeil.Tree
+                 , Paths_passveil
+
+library
+    ghc-options: -Wall
+    hs-source-dirs: src
+    build-depends: aeson >= 1.5.4 && < 1.6
+                 , base ^>=4.14.0.0
+                 , base16-bytestring == 0.1.1.7
+                 , bytestring >= 0.10.10 && < 0.11
+                 , cryptohash-sha256 >= 0.11.101 && < 0.12
+                 , directory >= 1.3.6 && < 1.4
+                 , filepath >= 1.4.2 && < 1.5
+                 , hashable >= 1.3.0 && < 1.4
+                 , hexstring >= 0.11.1 && < 0.12
+                 , megaparsec >= 9.0.0 && < 9.1
+                 , mtl >= 2.2.2 && < 2.3
+                 , process >= 1.6.9 && < 1.7
+                 , random >= 1.2.0 && < 1.3
+                 , text >= 1.2.3 && < 1.3
+                 , time >= 1.9.3 && < 1.10
+                 , unordered-containers >= 0.2.12 && < 0.3
+
+    exposed-modules: PassVeil.Store
+                   , PassVeil.Store.Cached
+                   , PassVeil.Store.Config
+                   , PassVeil.Store.Content
+                   , PassVeil.Store.Fingerprint
+                   , PassVeil.Store.Generator
+                   , PassVeil.Store.Gpg
+                   , PassVeil.Store.Hash
+                   , PassVeil.Store.Identity
+                   , PassVeil.Store.Index
+                   , PassVeil.Store.Key
+                   , PassVeil.Store.Log
+                   , PassVeil.Store.Metadata
+                   , PassVeil.Store.Path
+                   , PassVeil.Store.Payload
+                   , PassVeil.Store.Repository
+                   , PassVeil.Store.Timestamp
+                   , PassVeil.Store.Trust
+                   , PassVeil.Store.Uid
