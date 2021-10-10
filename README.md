@@ -1,4 +1,23 @@
-#Passveil
+# Passveil
+
+## Passveil in doma
+
+ 1. Install dependencies: `sudo apt install gpg2 darcs`
+ 2. Generate a GPG2 key, if you don't have one yet. Set it to never expire.
+ 3. Add yourself to doma-engineering's personas repository. We don't
+    have protected branches, so you'll have to ask someone to bless the
+    commit hash that has your public credentials.
+ 4. Download `passveil` binary from [here](https://ctf.cdn.doma.dev/passveil).
+ 5. Put the binary into your PATH. I use `~/.local/bin`.
+ 6. Run `passveil init "you@somewhere"`, where "you@somewhere" is the
+    identifier of your primary GPG2 key.
+ 7. Now, if your account has already been blessed, set Doma passveil
+    repo as the default darcs repository of your passveil store like
+    so: `echo -n 'ssh://doma@doma.dev/.doma-passveil' > ~/.passveil/store/_darcs/prefs/defaultrepo`.
+ 8. When you run `passveil sync`, you'll get access to all the secrets
+    you need to work on doma projects!
+
+## Original readme contents:
 
 passveil(1) is a distributed password manager this is using gpg2(1) for
 encryption, decryption, signing and verification, as well as darcs(1) for
