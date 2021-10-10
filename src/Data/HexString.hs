@@ -35,7 +35,6 @@ instance ToJSON HexString where
   toJSON = String . toText
 
 -- | Smart constructor which validates that all the text are actually
-
 --   hexadecimal characters.
 
 hexString :: BS.ByteString -> HexString
@@ -58,12 +57,10 @@ fromBinary = hexString . BS16.encode . BSL.toStrict . B.encode
 -- | Converts a 'HexString' to a 'B.Binary' value
 
 toBinary :: B.Binary a => HexString -> a
-toBinary (HexString bs) = B.decode . BSL.fromStrict . fst . BS16.decode $ bs
+toBinary (HexString bs) = B.decode . BSL.fromStrict . bs16decode' $ bs
 
 -- | Reads a 'BS.ByteString' as raw bytes and converts to hex representation. We
-
 --   cannot use the instance Binary of 'BS.ByteString' because it provides
-
 --   a leading length, which is not what we want when dealing with raw bytes.
 
 fromBytes :: BS.ByteString -> HexString
@@ -72,9 +69,15 @@ fromBytes = hexString . BS16.encode
 -- | Access to the raw bytes in a 'BS.ByteString' format.
 
 toBytes :: HexString -> BS.ByteString
-toBytes (HexString bs) = (fst . BS16.decode) bs
+toBytes (HexString bs) = bs16decode' bs
 
 -- | Access to a 'T.Text' representation of the 'HexString'
 
 toText :: HexString -> T.Text
 toText (HexString bs) = TE.decodeUtf8 bs
+
+bs16decode' :: BS.ByteString -> BS.ByteString
+bs16decode' x = go $ BS16.decode x
+  where
+    go (Left err) = error err
+    go (Right y) = y
