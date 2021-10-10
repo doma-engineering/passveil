@@ -8,6 +8,7 @@
 # See regex(7) for a description of extended regular expressions.
 
 
+.stack-work/
 _darcs/
 
 ### compiler and interpreter intermediate files
