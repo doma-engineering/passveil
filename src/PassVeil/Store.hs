@@ -1,48 +1,46 @@
 {-# LANGUAGE TupleSections #-}
+
 module PassVeil.Store
-  ( Store
-  , init
-  , load
-  , toStorePath
-  , toFilePath
-  , toIndexPath
-  , whoami
-  , getDirectory
+  ( Store,
+    init,
+    load,
+    toStorePath,
+    toFilePath,
+    toIndexPath,
+    whoami,
+    getDirectory,
 
-  -- * Query operations
-  , member
-  , hashes
-  , toList
-  , doesContentExist
-  , filePathForHash
+    -- * Query operations
+    member,
+    hashes,
+    toList,
+    doesContentExist,
+    filePathForHash,
 
-  -- * Modifying operations
-  , lookup
-  , delete
-  , insert
+    -- * Modifying operations
+    lookup,
+    delete,
+    insert,
   )
 where
 
-import Prelude hiding (init, lookup)
-
-import Control.Monad (unless, when, foldM, forM)
-
+import Control.Monad (foldM, forM, unless, when)
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as Text
-
-import System.FilePath ((</>), (<.>))
-import qualified System.Directory as Directory
-
-import PassVeil.Store.Config (Config(Config))
+import PassVeil.Store.Config (Config (Config))
+import qualified PassVeil.Store.Config as Config
 import PassVeil.Store.Content (Content)
 import PassVeil.Store.Fingerprint (Fingerprint)
-import PassVeil.Store.Hash (Hash)
-import PassVeil.Store.Key (Key)
-import qualified PassVeil.Store.Config as Config
 import qualified PassVeil.Store.Fingerprint as Fingerprint
 import qualified PassVeil.Store.Gpg as Gpg
+import PassVeil.Store.Hash (Hash)
 import qualified PassVeil.Store.Hash as Hash
+import PassVeil.Store.Key (Key)
+import PassVeil.Store.Payload (Payload)
+import qualified System.Directory as Directory
+import System.FilePath ((<.>), (</>))
+import Prelude hiding (init, lookup)
 
 -- | A store is locally initialized and is used via the specified `Fingerprint`
 -- which idendifies the @gpg@ key used for decryption and signing. An unsigned
@@ -66,9 +64,12 @@ import qualified PassVeil.Store.Hash as Hash
 -- information for each trusted `Fingerprint` as well as an optional @gpg@
 -- signature if the `Store` is signed (which is the default).
 data Store = Store
-  { storePath :: Text -- ^ Directory used for the `Store`
-  , whoami :: !Fingerprint -- ^ @gpg@ key used for decryption and signing
-  , signed :: !Bool -- ^ Is the `Store` signed
+  { -- | Directory used for the `Store`
+    storePath :: Text,
+    -- | @gpg@ key used for decryption and signing
+    whoami :: !Fingerprint,
+    -- | Is the `Store` signed
+    signed :: !Bool
   }
 
 -- | Return filepath for `Store`.
@@ -88,11 +89,14 @@ toConfigPath :: FilePath -> FilePath
 toConfigPath = (</> "config.json")
 
 -- | Initialize a new `Store`.
-init
-  :: Fingerprint -- ^ `Fingerprint` of the `Store` owner
-  -> FilePath -- ^ `Store` filepath
-  -> Bool -- ^ Signed
-  -> IO Store
+init ::
+  -- | `Fingerprint` of the `Store` owner
+  Fingerprint ->
+  -- | `Store` filepath
+  FilePath ->
+  -- | Signed
+  Bool ->
+  IO Store
 init fingerprint path signed' = do
   let config = Config fingerprint signed'
 
@@ -104,28 +108,32 @@ init fingerprint path signed' = do
   return store
 
 -- | Return the default `Store` filepath or compute an alternative path.
-getDirectory
-  :: Maybe FilePath -- ^ Alternative store path
-  -> IO FilePath
+getDirectory ::
+  -- | Alternative store path
+  Maybe FilePath ->
+  IO FilePath
 getDirectory = maybe defaultStore pure
   where
-    defaultStore = fmap
-      (</> ".passveil")
-      Directory.getHomeDirectory
+    defaultStore =
+      fmap
+        (</> ".passveil")
+        Directory.getHomeDirectory
 
 -- | Load `Store` from default file path or alternative path.
-load
-  :: Maybe FilePath -- ^ Alternative store path
-  -> IO (Maybe Store)
+load ::
+  -- | Alternative store path
+  Maybe FilePath ->
+  IO (Maybe Store)
 load mPath = do
   path <- getDirectory mPath
   mConfig <- Config.read (toConfigPath path)
 
   forM mConfig $ \config ->
-    return $ Store
-      (Text.pack path)
-      (Config.whoami config)
-      (Config.signed config)
+    return $
+      Store
+        (Text.pack path)
+        (Config.whoami config)
+        (Config.signed config)
 
 -- | Insert data into `Store`.
 --
@@ -154,13 +162,13 @@ member hash store = do
 
 -- | Lookup `Key` in `Store`. This function is using `Gpg.decrypt` internally
 -- and can throw a `Gpg.DecryptException`.
-lookup :: Key -> Store -> IO (Maybe Content)
-lookup key@(hash, fingerprint) store = do
+lookup :: Key -> Store -> Maybe Payload -> IO (Maybe Content)
+lookup key@(hash, fingerprint) store mPayload = do
   exists <- doesContentExist store hash fingerprint
 
   if exists
-     then decrypt store key
-     else return Nothing
+    then decrypt store key mPayload
+    else return Nothing
 
 -- | Returns visible `Hash` values.
 hashes :: Store -> IO [Hash]
@@ -177,22 +185,23 @@ hashes store = do
     check acc hash = do
       exists <- doesContentExist store hash fingerprint
 
-      return $ if exists
-         then hash:acc
-         else acc
+      return $
+        if exists
+          then hash : acc
+          else acc
 
 -- | Convert visibles values in the `Store` to an associative list. This
 -- function is using `Gpg.decrypt` internally and can throw a
 -- `Gpg.DecryptException`.
-toList :: Store -> IO [(Hash, Content)]
-toList store =
+toList :: Store -> Maybe Payload -> IO [(Hash, Content)]
+toList store mPayload =
   hashes store >>= traverse fetch >>= return . catMaybes
   where
     fingerprint = whoami store
-    fetch hash = fmap (hash,) <$> decrypt store (hash, fingerprint)
+    fetch hash = fmap (hash,) <$> decrypt store (hash, fingerprint) mPayload
 
 -- | Delete data from `Store`.
-delete ::  Key -> Store -> IO ()
+delete :: Key -> Store -> IO ()
 delete (hash, fingerprint) store = do
   let store' = toStorePath store
       hash' = Hash.toFilePath hash
@@ -224,7 +233,7 @@ doesContentExist store hash fingerprint =
       dir = store' </> hash' </> fingerprint'
    in Directory.doesFileExist dir
 
-decrypt :: Store -> Key -> IO (Maybe Content)
+decrypt :: Store -> Key -> Maybe Payload -> IO (Maybe Content)
 decrypt store = Gpg.decrypt (signed store) (toStorePath store) (whoami store)
 
 encrypt :: Store -> Key -> Content -> IO ()

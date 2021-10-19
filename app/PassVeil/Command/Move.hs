@@ -1,17 +1,14 @@
 module PassVeil.Command.Move
-  ( Options
-  , parse
-  , run
+  ( Options,
+    parse,
+    run,
   )
 where
 
 import Control.Applicative ((<**>))
 import Control.Monad (when)
-
 import Options.Applicative (ParserInfo)
 import qualified Options.Applicative as Options
-
-import PassVeil.Store.Path (Path)
 import qualified PassVeil as PassVeil
 import qualified PassVeil.Exit as Exit
 import qualified PassVeil.Options as Options
@@ -19,21 +16,24 @@ import qualified PassVeil.Store as Store
 import qualified PassVeil.Store.Content as Content
 import qualified PassVeil.Store.Hash as Hash
 import qualified PassVeil.Store.Index as Index
+import PassVeil.Store.Path (Path)
 import qualified PassVeil.Store.Repository as Repository
 
 data Options = Options
-  { optionsSource :: !Path
-  , optionsTarget :: !Path
+  { optionsSource :: !Path,
+    optionsTarget :: !Path
   }
 
 parse :: ParserInfo Options
-parse = Options.info
-  (parser <**> Options.helper)
-  (Options.progDesc "Move a password to another path")
+parse =
+  Options.info
+    (parser <**> Options.helper)
+    (Options.progDesc "Move a password to another path")
   where
-    parser = Options
-         <$> Options.pathArgument
-         <*> Options.pathArgument
+    parser =
+      Options
+        <$> Options.pathArgument
+        <*> Options.pathArgument
 
 run :: Maybe FilePath -> Options -> IO ()
 run mStore options = do
@@ -57,9 +57,9 @@ run mStore options = do
   when exists $
     Exit.alreadyExists target
 
-  content <- PassVeil.getContent store source sourceKey
+  content <- PassVeil.getContent store source sourceKey Nothing
 
-  let updated = content { Content.path = target }
+  let updated = content {Content.path = target}
 
   PassVeil.insertContent targetKey updated store
   Store.delete sourceKey store

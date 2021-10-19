@@ -1,45 +1,44 @@
 module PassVeil.Command.Edit
-  ( Options
-  , parse
-  , run
+  ( Options,
+    parse,
+    run,
   )
 where
 
-import Control.Applicative ((<|>), (<**>), optional)
+import Control.Applicative (optional, (<**>), (<|>))
 import Control.Monad (forM_, when)
-
 import qualified Data.HashMap.Strict as HashMap
-
 import Options.Applicative (ParserInfo)
 import qualified Options.Applicative as Options
-
-import PassVeil.Store.Generator (Generator)
-import PassVeil.Store.Path (Path)
 import qualified PassVeil as PassVeil
 import qualified PassVeil.Editor as Editor
 import qualified PassVeil.Exit as Exit
 import qualified PassVeil.Options as Options
 import qualified PassVeil.Store as Store
 import qualified PassVeil.Store.Content as Content
+import PassVeil.Store.Generator (Generator)
 import qualified PassVeil.Store.Generator as Generator
 import qualified PassVeil.Store.Hash as Hash
 import qualified PassVeil.Store.Index as Index
 import qualified PassVeil.Store.Metadata as Metadata
+import PassVeil.Store.Path (Path)
 import qualified PassVeil.Store.Repository as Repository
 
 data Options = Options
-  { optionsPath :: !Path
-  , optionsGenerator :: !(Maybe Generator)
+  { optionsPath :: !Path,
+    optionsGenerator :: !(Maybe Generator)
   }
 
 parse :: ParserInfo Options
-parse = Options.info
-  (parser <**> Options.helper)
-  (Options.progDesc "Edit an existing password in the store")
+parse =
+  Options.info
+    (parser <**> Options.helper)
+    (Options.progDesc "Edit an existing password in the store")
   where
-    parser = Options
-         <$> Options.pathArgument
-         <*> optional Options.generateOption
+    parser =
+      Options
+        <$> Options.pathArgument
+        <*> optional Options.generateOption
 
 run :: Maybe FilePath -> Options -> IO ()
 run mStore options = do
@@ -53,7 +52,7 @@ run mStore options = do
       hash = Hash.compute path
       key = (hash, whoami)
 
-  content <- PassVeil.getContent store path key
+  content <- PassVeil.getContent store path key Nothing
   mGenerated <- traverse Generator.generate mGenerator
 
   let payload = Content.payload content

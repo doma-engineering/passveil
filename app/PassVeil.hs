@@ -3,45 +3,45 @@ module PassVeil where
 import Control.Exception (catch)
 import Control.Monad (when, (>=>))
 import qualified Control.Monad.State as State
-
-import Data.ByteString.Lazy (ByteString)
 import qualified Data.Aeson as Aeson
+import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as ByteString
 import qualified Data.Text.IO as Text
 import qualified Data.Version as Version
-
+import qualified PassVeil.Console as Console
+import qualified PassVeil.Exit as Exit
 import PassVeil.Store (Store)
+import qualified PassVeil.Store as Store
 import PassVeil.Store.Cached (Cached)
 import PassVeil.Store.Content (Content)
 import PassVeil.Store.Fingerprint (Fingerprint)
+import qualified PassVeil.Store.Gpg as Gpg
 import PassVeil.Store.Identity (Identity)
 import PassVeil.Store.Index (Index, IndexM, IndexMod)
+import qualified PassVeil.Store.Index as Index
 import PassVeil.Store.Key (Key)
 import PassVeil.Store.Path (Path)
-import qualified PassVeil.Console as Console
-import qualified PassVeil.Exit as Exit
-import qualified PassVeil.Store as Store
-import qualified PassVeil.Store.Gpg as Gpg
-import qualified PassVeil.Store.Index as Index
 import qualified PassVeil.Store.Path as Path
+import PassVeil.Store.Payload (Payload)
 import qualified PassVeil.Store.Repository as Repository
-
 import qualified Paths_passveil
-
 import qualified System.Directory as Directory
 
 getCached :: Store -> Path -> IO Cached
 getCached store path =
-  withIndex False store (Index.lookup path) >>= maybe
-    (Exit.notFound path)
-    pure
-
-getContent :: Store -> Path -> Key -> IO Content
-getContent store path key = action `catch` handle
-  where
-    action = Store.lookup key store >>= maybe
+  withIndex False store (Index.lookup path)
+    >>= maybe
       (Exit.notFound path)
       pure
+
+getContent :: Store -> Path -> Key -> Maybe Payload -> IO Content
+getContent store path key mPayload = action `catch` handle
+  where
+    action =
+      Store.lookup key store mPayload
+        >>= maybe
+          (Exit.notFound path)
+          pure
 
     handle :: Gpg.DecryptException -> IO a
     handle Gpg.DecryptFailed = Exit.decryptFailed
@@ -62,13 +62,16 @@ repositoryGuard :: Store -> IO ()
 repositoryGuard store = do
   dirty <- Repository.isDirty store
 
-  when dirty $
+  when
+    dirty
     Exit.repositoryDirty
 
 whois :: Identity -> IO Fingerprint
-whois identity = Gpg.whois identity >>= maybe
-  (Exit.unknownIdentity identity)
-  pure
+whois identity =
+  Gpg.whois identity
+    >>= maybe
+      (Exit.unknownIdentity identity)
+      pure
 
 getStore :: Maybe FilePath -> IO Store
 getStore = Store.load >=> maybe Exit.storeError pure
@@ -89,8 +92,8 @@ withIndex update store act = do
       exists <- Directory.doesFileExist path
 
       if exists
-         then ByteString.readFile path >>= parseIndex
-         else pure (Index.empty, True)
+        then ByteString.readFile path >>= parseIndex
+        else pure (Index.empty, True)
 
     writeIndex =
       ByteString.writeFile (Store.toIndexPath store) . Aeson.encode
@@ -114,5 +117,6 @@ printIndexMod mod' = case mod' of
       Text.putStrLn (Path.fromPath path)
 
 printVersion :: IO ()
-printVersion = putStrLn $
-  Version.showVersion Paths_passveil.version
+printVersion =
+  putStrLn $
+    Version.showVersion Paths_passveil.version

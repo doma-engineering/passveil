@@ -23,8 +23,10 @@ import qualified Data.Aeson as Aeson
 import Data.Bool (bool)
 import qualified Data.ByteString.Lazy as ByteString
 import qualified Data.HashMap.Strict as HashMap
+import Data.Maybe (isJust)
 import Data.Text (Text, isInfixOf, isPrefixOf)
 import qualified Data.Text as Text
+import qualified Data.Text.IO as TIO
 import qualified Data.Text.IO as Text
 import PassVeil.Store.Content (Content)
 import qualified PassVeil.Store.Content as Content
@@ -35,6 +37,7 @@ import PassVeil.Store.Identity (Identity)
 import qualified PassVeil.Store.Identity as Identity
 import PassVeil.Store.Key
 import qualified PassVeil.Store.Metadata as Metadata
+import PassVeil.Store.Payload (Payload)
 import qualified PassVeil.Store.Timestamp as Timestamp
 import PassVeil.Store.Uid (Uid (Uid))
 import qualified System.Directory as Directory
@@ -146,8 +149,10 @@ decrypt ::
   Fingerprint ->
   -- | `Key` to look up
   Key ->
+  -- | `Nothing` if not in batch mode, otherwise, batch payload
+  Maybe Payload ->
   IO (Maybe Content)
-decrypt signed store whoami (hash, fpr) = do
+decrypt signed store whoami (hash, fpr) mPayload = do
   exists <- Directory.doesFileExist path
 
   if exists
@@ -160,19 +165,21 @@ decrypt signed store whoami (hash, fpr) = do
     path = store </> hash' </> fpr'
 
     gpgDecrypt = do
+      let obligatoryGpgArgs = ["--decrypt", "--default-key", whoami', "--quiet"]
+      let optionalGpgArgs =
+            if isJust mPayload
+              then ["--pinentry-mode", "loopback"]
+              else []
+      let gpgArgs = obligatoryGpgArgs ++ optionalGpgArgs ++ [path]
       let gpg =
             Process.proc
               "gpg"
-              [ "--decrypt",
-                "--default-key",
-                whoami',
-                "--quiet",
-                -- TODO despatch batchMode all the way to here
-                path
-              ]
-          gpgPipe = gpg {Process.std_out = Process.CreatePipe}
+              gpgArgs
+          gpgPipe = gpg {Process.std_out = Process.CreatePipe, Process.std_in = Process.CreatePipe}
 
-      (_, Just hOut, _, h) <- Process.createProcess gpgPipe
+      (Just hin, Just hOut, _, h) <- Process.createProcess gpgPipe
+      _ <-
+        maybe (pure ()) (TIO.hPutStrLn hin) mPayload
 
       exitCode <- Process.waitForProcess h
 
