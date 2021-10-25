@@ -9,13 +9,15 @@
     commit hash that has your public credentials.
  4. Download `passveil` binary from [here](https://ctf.cdn.doma.dev/passveil).
  5. Put the binary into your PATH. I use `~/.local/bin`.
- 6. Run `passveil init "you@somewhere"`, where "you@somewhere" is the
-    identifier of your primary GPG2 key.
- 7. Now, if your account has already been blessed, set Doma passveil
-    repo as the default darcs repository of your passveil store like
-    so: `echo -n 'ssh://doma@doma.dev/.doma-passveil' > ~/.passveil/store/_darcs/prefs/defaultrepo`.
- 8. When you run `passveil sync`, you'll get access to all the secrets
-    you need to work on doma projects!
+ 6. Download all the gpg2 keys from the repository and add them to your
+    GPG2 keyring with `gpg2 --import keyfile`. This is required to be
+    able to [verify signatures of secrets stored](https://social.doma.dev/@jonn/107159766453333067).
+ 6. Get the confirmation that your persona has been blessed.
+ 7. Run `passveil init "you@somewhere" ssh://doma@doma.dev/.doma-passveil`,
+    where "you@somewhere" is the identifier of your primary GPG2 key.
+ 8. Now you should have access to some passwords, if not, give an
+    administrator some time to share them with you and then run
+    `veil sync`.
 
 ## Original readme contents:
 
