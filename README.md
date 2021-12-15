@@ -12,7 +12,7 @@
  6. Download all the gpg2 keys from the repository and add them to your
     GPG2 keyring with `gpg2 --import keyfile`. This is required to be
     able to [verify signatures of secrets stored](https://social.doma.dev/@jonn/107159766453333067).
- 6. Get the confirmation that your persona has been blessed.
+ 6. Get the confirmation from a Doma admin that your [persona](https://github.com/doma-engineering/personas) has been blessed.
  7. Run `passveil init "you@somewhere" ssh://doma@doma.dev/.doma-passveil`,
     where "you@somewhere" is the identifier of your primary GPG2 key.
  8. Now you should have access to some passwords, if not, give an
