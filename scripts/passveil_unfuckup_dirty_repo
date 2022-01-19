@@ -1,0 +1,13 @@
+echo "This is a destructive operation. Press Ctrl+c now if you're unsure it's OK to continue, or press Enter if you know what you're doing"
+read
+
+_store="${HOME}/.passveil"
+if [[ -n "$1" ]]; then
+  _store="$1"
+fi
+
+passveil --store "$_store" undo
+
+_repo="${_store}/store"
+cd "$_repo"
+darcs status | cut -d\  -f2 | parallel 'rm -rvf "{1}"'
