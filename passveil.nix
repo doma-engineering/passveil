@@ -24,6 +24,8 @@
 , unix
 , unordered-containers
 , fetchzip
+, darcs
+, makeWrapper
 }:
 
 mkDerivation {
@@ -77,7 +79,17 @@ mkDerivation {
     time
     unix
     unordered-containers
+    darcs
   ];
+
+  buildTools = [ makeWrapper ];
+  postInstall = ''
+    wrapProgram $out/bin/passveil \
+      --prefix PATH : ${lib.getBin darcs}/bin
+  '';
+
+  extraLibraries = [ darcs ];
+
   license = "unknown";
   #  mainProgram = "passveil";
 }
