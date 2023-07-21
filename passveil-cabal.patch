@@ -1,0 +1,10 @@
+diff --git a/passveil.cabal b/passveil.cabal
+index 9087ab3..9a02c4e 100644
+--- a/passveil.cabal
++++ b/passveil.cabal
+@@ -1,4 +1,4 @@
+-cabal-version: 3.6
++cabal-version: 2.4
+ name: passveil
+ version: 0.1.0.0
+ 
