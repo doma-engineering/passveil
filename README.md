@@ -2,7 +2,7 @@
 
 ## Passveil in doma
 
- 1. Install dependencies: `sudo apt install gpg2 darcs`
+ 1. Install dependencies: `sudo apt install gnupg darcs`
  2. Generate a GPG2 key, if you don't have one yet. Set it to never expire.
  3. Add yourself to doma-engineering's personas repository. We don't
     have protected branches, so you'll have to ask someone to bless the
