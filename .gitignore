@@ -3,10 +3,12 @@
 # out during `darcs add`, or when the `--look-for-adds` flag is passed
 # to `darcs whatsnew` and `record`. The entries in ~/.darcs/boring (if
 # it exists) supplement those in this file.
-# 
+#
 # Blank lines, and lines beginning with an octothorpe (#) are ignored.
 # See regex(7) for a description of extended regular expressions.
 
+.direnv
+result
 
 .stack-work/
 _darcs/
@@ -124,7 +126,7 @@ _darcs/
 (^|.*/)\.emacs\.desktop(\.lock)?$
  # stack
 (^|/)\.stack-work/
-^dist-newstyle/
+dist-newstyle/
 passveil.1
 # autotools
 (^|/)autom4te\.cache/
