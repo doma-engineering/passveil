@@ -52,7 +52,7 @@ unsignedFlag = fmap not $ Options.switch $
 
 unverifiedFlag :: Parser Bool
 unverifiedFlag = Options.switch $
-     Options.help "Do not verify password"
+     Options.help "Do not verify data"
   <> Options.long "unverified"
 
 reindexFlag :: Parser Bool
