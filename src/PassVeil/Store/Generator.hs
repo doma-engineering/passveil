@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards  #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module PassVeil.Store.Generator
   ( Generator
   , parse

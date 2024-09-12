@@ -6,8 +6,6 @@ module Data.HexString ( HexString
                       , toBytes
                       , toText ) where
 
-import           Control.Applicative    (pure)
-
 import           Data.Aeson
 import           Data.Word              (Word8)
 
