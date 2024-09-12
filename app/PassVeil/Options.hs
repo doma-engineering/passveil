@@ -50,6 +50,11 @@ unsignedFlag = fmap not $ Options.switch $
      Options.help "Do not sign keys"
   <> Options.long "unsigned"
 
+unverifiedFlag :: Parser Bool
+unverifiedFlag = Options.switch $
+     Options.help "Do not verify password"
+  <> Options.long "unverified"
+
 reindexFlag :: Parser Bool
 reindexFlag = Options.switch $
      Options.help "Force index rebuild"

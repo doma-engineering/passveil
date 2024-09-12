@@ -4,6 +4,7 @@ module PassVeil.Store
   ( Store,
     init,
     load,
+    signed,
     toStorePath,
     toFilePath,
     toIndexPath,

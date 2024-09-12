@@ -21,7 +21,8 @@ import PassVeil.Store.Path (Path)
 
 data Options = Options
   { optionsPath :: !Path,
-    optionsBatchMode :: !Bool
+    optionsBatchMode :: !Bool,
+    optionsUnverified :: !Bool
   }
 
 parse :: ParserInfo Options
@@ -30,11 +31,14 @@ parse =
     (parser <**> Options.helper)
     (Options.progDesc "Show password of a path")
   where
-    parser = Options <$> Options.pathArgument <*> Options.batchFlag
+    parser = Options
+      <$> Options.pathArgument
+      <*> Options.batchFlag
+      <*> Options.unverifiedFlag
 
 run :: Maybe FilePath -> Options -> IO ()
 run mStore options = do
-  store <- PassVeil.getStore mStore
+  store <- getStore
 
   let path = optionsPath options
       fingerprint = Store.whoami store
@@ -48,3 +52,11 @@ run mStore options = do
 
   PassVeil.getContent store path key (T.pack <$> isPayloadRequired)
     >>= Text.putStrLn . Content.payload
+
+  where
+      getStore = do
+        store <- PassVeil.getStore mStore
+
+        return $ if optionsUnverified options
+          then store { Store.signed = False }
+          else store

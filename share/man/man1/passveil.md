@@ -220,10 +220,14 @@ Show password of a key. If the store is signed passveil(1) is going to check if
 the created file was signed using the gpg2(1) key that is claiming to have
 issued the encrypted file.
 
+**\[\-\-unverified\]**
+
+Override verification on signed stores. Display the stored secret whether it is
+properly signed or not.
+
 **-h**, **\-\-help**
 
 Print help for **show**.
-
 _**list** \[\-\-tree] \[PATH]_
 ------------------------------
 
