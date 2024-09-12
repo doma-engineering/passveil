@@ -59,6 +59,7 @@ executable passveil
 
     other-modules: PassVeil
                  , PassVeil.Command.Allow
+                 , PassVeil.Command.Copy
                  , PassVeil.Command.Delete
                  , PassVeil.Command.Deny
                  , PassVeil.Command.Distrust

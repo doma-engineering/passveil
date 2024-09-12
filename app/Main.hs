@@ -8,6 +8,7 @@ import qualified Options.Applicative as Options
 
 import qualified PassVeil (printVersion)
 import qualified PassVeil.Command.Allow as Allow
+import qualified PassVeil.Command.Copy as Copy
 import qualified PassVeil.Command.Delete as Delete
 import qualified PassVeil.Command.Deny as Deny
 import qualified PassVeil.Command.Distrust as Distrust
@@ -32,6 +33,7 @@ data Options
 
 data SubCommandOptions
   = Allow Allow.Options
+  | Copy Copy.Options
   | Delete Delete.Options
   | Deny Deny.Options
   | Distrust Distrust.Options
@@ -54,6 +56,7 @@ permissions = Files.unionFileModes
 run :: Maybe FilePath -> SubCommandOptions -> IO ()
 run mStore subCommandOptions = case subCommandOptions of
   Allow options -> Allow.run mStore options
+  Copy options -> Copy.run mStore options
   Deny options -> Deny.run mStore options
   Distrust options -> Distrust.run mStore options
   Info options -> Info.run mStore options
@@ -86,6 +89,7 @@ main = do
       <> Options.command "delete" (Delete <$> Delete.parse)
       <> Options.command "edit" (Edit <$> Edit.parse)
       <> Options.command "move" (Move <$> Move.parse)
+      <> Options.command "copy" (Copy <$> Copy.parse)
 
     queryOperations = Options.subparser $
          Options.commandGroup "Query operations:"

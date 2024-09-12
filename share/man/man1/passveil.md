@@ -174,6 +174,17 @@ creation date of the original password but updates the _issued_ information.
 
 Print help for **move**.
 
+_**copy** PATH PATH_
+--------------------
+
+Copy a password to another location within the store. Overwriting existing
+passwords via this command is not permitted. This command does not change the
+creation date of the original password but updates the _issued_ information.
+
+**-h**, **\-\-help**
+
+Print help for **copy**.
+
 _**edit** \[\-\-generate RULES] PATH_
 -------------------------------------
 
