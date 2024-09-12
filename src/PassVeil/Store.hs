@@ -17,6 +17,7 @@ module PassVeil.Store
     toList,
     doesContentExist,
     filePathForHash,
+    verify,
 
     -- * Modifying operations
     lookup,
@@ -170,6 +171,21 @@ lookup key@(hash, fingerprint) store mPayload = do
   if exists
     then decrypt store key mPayload
     else return Nothing
+
+-- | Verify if `Key` in `Store` has been issued via the given `Fingerprint`.
+verify :: Key -> Fingerprint -> Store -> IO Bool
+verify key@(hash, fingerprint) issuer store = do
+  exists <- doesContentExist store hash fingerprint
+
+  if exists
+     then Gpg.verify
+       (signed store)
+       (toStorePath store)
+       (whoami store)
+       key
+       issuer
+
+     else return False
 
 -- | Returns visible `Hash` values.
 hashes :: Store -> IO [Hash]
