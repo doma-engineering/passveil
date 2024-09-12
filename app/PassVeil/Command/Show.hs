@@ -6,6 +6,7 @@ module PassVeil.Command.Show
 where
 
 import Control.Applicative ((<**>))
+import Data.Bool (bool)
 import qualified Data.Text as T
 import qualified Data.Text.IO as Text
 import Options.Applicative (ParserInfo)
@@ -38,7 +39,10 @@ parse =
 
 run :: Maybe FilePath -> Options -> IO ()
 run mStore options = do
-  store <- getStore
+  store <- bool
+    PassVeil.getStore
+    PassVeil.getUnsignedStore
+    (optionsUnverified options) $ mStore
 
   let path = optionsPath options
       fingerprint = Store.whoami store
@@ -52,11 +56,3 @@ run mStore options = do
 
   PassVeil.getContent store path key (T.pack <$> isPayloadRequired)
     >>= Text.putStrLn . Content.payload
-
-  where
-      getStore = do
-        store <- PassVeil.getStore mStore
-
-        return $ if optionsUnverified options
-          then store { Store.signed = False }
-          else store
