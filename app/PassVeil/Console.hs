@@ -1,6 +1,7 @@
 module PassVeil.Console
   ( module System.Console.ANSI
   , withColor
+  , withColor'
   , spacer
   )
 where
@@ -11,14 +12,17 @@ import System.Console.ANSI
 import qualified System.Console.ANSI as Console
 
 withColor :: Console.Color -> IO () -> IO ()
-withColor color act = do
+withColor = withColor' Console.Dull
+
+withColor' :: Console.ColorIntensity -> Console.Color -> IO () -> IO ()
+withColor' intensity color act = do
   Console.setSGR c
   act
   Console.setSGR [Console.Reset]
   where
     c = [ Console.SetColor
             Console.Foreground
-            Console.Dull
+            intensity
             color
         ]
 
