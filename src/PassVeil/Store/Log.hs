@@ -3,10 +3,9 @@
 module PassVeil.Store.Log (Log(..)) where
 
 import Data.Aeson
-import Data.Text (Text)
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Types as Aeson
-import qualified Data.HashMap.Strict as HashMap
+import qualified Data.Aeson.KeyMap as KeyMap
 
 import PassVeil.Store.Trust (Trust)
 
@@ -18,18 +17,18 @@ data Log
   | Deny Trust -- ^ Log removed `Trust
   deriving Show
 
-allow :: Text
+allow :: Aeson.Key
 allow = "allow"
 
-deny :: Text
+deny :: Aeson.Key
 deny = "deny"
 
 instance FromJSON Log where
   parseJSON (Object o)
-    | Just trust <- HashMap.lookup allow o
+    | Just trust <- KeyMap.lookup allow o
     = Allow <$> Aeson.parseJSON trust
 
-    | Just trust <- HashMap.lookup deny o
+    | Just trust <- KeyMap.lookup deny o
     = Deny <$> Aeson.parseJSON trust
 
   parseJSON invalid =
