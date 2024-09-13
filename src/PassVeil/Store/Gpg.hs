@@ -321,8 +321,14 @@ verify' whoami path = do
 
       return mIssuer
 
-    getIssuer input =
-      let k = filter ("using RSA key" `isInfixOf`) (Text.lines input)
-       in case k of
-            [] -> Nothing
-            key : _ -> Just (Fingerprint (Text.drop 34 key))
+    getIssuer input
+      | "Good signature" `isInfixOf` input =
+        let fprPrefix = "Primary key fingerprint: "
+        in case filter (fprPrefix `isPrefixOf`) $ Text.lines input of
+          [] -> Nothing
+          (fingerprintLine : _) ->
+            let
+              k = last $ Text.splitOn ":" fingerprintLine
+              fpr = Text.filter (/= ' ') k
+            in Just $ Fingerprint fpr
+      | otherwise = Nothing
