@@ -18,8 +18,7 @@ edit :: Maybe Text -> (Text -> IO ()) -> IO ()
 edit mContent act = do
   editor <- Environment.getEnv "EDITOR"
 
-  when (null editor) $
-    Exit.couldNotRunEditor
+  when (null editor) Exit.couldNotRunEditor
 
   Temp.withSystemTempFile "passveil" $ \f h -> do
     forM_ mContent (Text.hPutStr h)
@@ -29,12 +28,10 @@ edit mContent act = do
     exitCode <- Process.system $
       editor ++ " " ++ f
 
-    when (exitCode /= ExitSuccess) $
-      Exit.couldNotEdit
+    when (exitCode /= ExitSuccess) Exit.couldNotEdit
 
     secret <- Text.dropWhileEnd (== '\n')  <$> Text.readFile f
 
-    when (Text.null secret) $
-       Exit.nothingToDo
+    when (Text.null secret) Exit.nothingToDo
 
     act secret

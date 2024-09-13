@@ -11,7 +11,7 @@ import Control.Monad (forM_)
 import Options.Applicative (ParserInfo)
 import qualified Options.Applicative as Options
 
-import qualified PassVeil as PassVeil
+import qualified PassVeil
 import qualified PassVeil.Store.Index as Index
 import qualified PassVeil.Store.Repository as Repository
 
@@ -28,7 +28,6 @@ run mStore _ = do
 
   Repository.undo store
 
-  mods <- PassVeil.withIndex True store $
-    Index.refresh
+  mods <- PassVeil.withIndex True store Index.refresh
 
   forM_ mods PassVeil.printIndexMod

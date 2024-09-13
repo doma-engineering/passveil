@@ -14,7 +14,7 @@ import Options.Applicative (ParserInfo)
 import qualified Options.Applicative as Options
 
 import PassVeil.Store.Path (Path)
-import qualified PassVeil as PassVeil
+import qualified PassVeil
 import qualified PassVeil.Options as Options
 import qualified PassVeil.Store.Index as Index
 import qualified PassVeil.Store.Path as Path

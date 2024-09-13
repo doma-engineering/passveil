@@ -16,7 +16,7 @@ import Options.Applicative (ParserInfo)
 import qualified Options.Applicative as Options
 
 import PassVeil.Store.Identity (Identity)
-import qualified PassVeil as PassVeil
+import qualified PassVeil
 import qualified PassVeil.Options as Options
 import qualified PassVeil.Store.Cached as Cached
 import qualified PassVeil.Store.Index as Index
@@ -40,8 +40,7 @@ run mStore options = do
   let identities = optionsIdentities options
 
   distrusted <- traverse PassVeil.whois identities
-  entries <- PassVeil.withIndex False store $
-    Index.toList
+  entries <- PassVeil.withIndex False store Index.toList
 
   let tainted = sort
         $ map fst

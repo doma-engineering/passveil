@@ -29,7 +29,7 @@ import PassVeil.Store.Metadata (Metadata)
 import PassVeil.Store.Path (Path)
 import PassVeil.Store.Timestamp (Timestamp(Timestamp))
 import PassVeil.Store.Uid (Uid)
-import qualified PassVeil as PassVeil
+import qualified PassVeil
 import qualified PassVeil.Console as Console
 import qualified PassVeil.Options as Options
 import qualified PassVeil.Store as Store
@@ -62,7 +62,8 @@ run mStore options = do
   store <- bool
     PassVeil.getStore
     PassVeil.getUnsignedStore
-    (optionsUnverified options) $ mStore
+    (optionsUnverified options)
+    mStore
 
   let path = optionsPath options
       fingerprint = Store.whoami store
@@ -123,7 +124,7 @@ printMetadata verified metadata = do
         $ Metadata.insiders metadata
    in Console.spacer $ flip map insiders $ \(subject, timestamp) -> do
         printTime tz (Timestamp.at timestamp)
-        printFingerprint 3 known (subject)
+        printFingerprint 3 known subject
 
   Text.putStrLn "\nlog:"
   Console.spacer $ flip map (Metadata.log metadata) $ \log' -> do

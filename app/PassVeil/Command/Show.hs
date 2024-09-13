@@ -42,7 +42,8 @@ run mStore options = do
   store <- bool
     PassVeil.getStore
     PassVeil.getUnsignedStore
-    (optionsUnverified options) $ mStore
+    (optionsUnverified options)
+    mStore
 
   let path = optionsPath options
       fingerprint = Store.whoami store

@@ -27,6 +27,7 @@ module PassVeil.Store
 where
 
 import Control.Monad (foldM, forM, unless, when)
+import Data.Functor ((<&>))
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -212,7 +213,7 @@ hashes store = do
 -- `Gpg.DecryptException`.
 toList :: Store -> Maybe Payload -> IO [(Hash, Content)]
 toList store mPayload =
-  hashes store >>= traverse fetch >>= return . catMaybes
+  (hashes store >>= traverse fetch) <&> catMaybes
   where
     fingerprint = whoami store
     fetch hash = fmap (hash,) <$> decrypt store (hash, fingerprint) mPayload

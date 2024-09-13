@@ -284,7 +284,7 @@ uids fpr' =
 
 verify :: Bool -> FilePath -> Fingerprint -> Key -> Fingerprint -> IO Bool
 verify signed store whoami (hash, fpr) issuer
-  | signed = maybe False (== issuer) <$> verify' whoami path
+  | signed = (Just issuer ==) <$> verify' whoami path
   | otherwise = return True
   where
     hash' = Hash.toFilePath hash

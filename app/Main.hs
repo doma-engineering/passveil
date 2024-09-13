@@ -3,6 +3,7 @@ module Main where
 import Prelude hiding (Show)
 
 import Control.Applicative ((<**>), (<|>), optional)
+import Data.Functor (($>))
 
 import qualified Options.Applicative as Options
 
@@ -118,7 +119,7 @@ main = do
            <|> trustManagement
            <|> storeManagement
 
-    versionParser = Options.versionFlag *> pure ShowVersion
+    versionParser = Options.versionFlag $> ShowVersion
     optionsParser = Options <$> optional Options.storeOption <*> commands
 
     parser = optionsParser <|> versionParser

@@ -10,7 +10,7 @@ import Control.Monad (forM_, when)
 import qualified Data.HashMap.Strict as HashMap
 import Options.Applicative (ParserInfo)
 import qualified Options.Applicative as Options
-import qualified PassVeil as PassVeil
+import qualified PassVeil
 import qualified PassVeil.Exit as Exit
 import qualified PassVeil.Options as Options
 import qualified PassVeil.Store as Store
@@ -65,8 +65,7 @@ run mStore options = do
 
   let receivers = HashMap.keys (Metadata.trusted metadata)
 
-  when (null receivers) $
-    Exit.orphaned
+  when (null receivers) Exit.orphaned
 
   let hash = Hash.compute path
       key = (hash, whoami)

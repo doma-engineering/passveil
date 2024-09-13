@@ -11,7 +11,7 @@ import Control.Monad (forM_, when, unless)
 import Options.Applicative (ParserInfo)
 import qualified Options.Applicative as Options
 
-import qualified PassVeil as PassVeil
+import qualified PassVeil
 import qualified PassVeil.Options as Options
 import qualified PassVeil.Store.Index as Index
 import qualified PassVeil.Store.Repository as Repository
@@ -40,8 +40,7 @@ run mStore options = do
     Repository.sync store
 
   mods <- PassVeil.withIndex True store $ do
-    when (optionsReindex options) $
-     Index.clear
+    when (optionsReindex options) Index.clear
 
     Index.refresh
 

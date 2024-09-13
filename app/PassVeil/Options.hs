@@ -14,11 +14,10 @@ import qualified PassVeil.Store.Generator as Generator
 import qualified PassVeil.Store.Path as Path
 
 pathArgument :: Parser Path
-pathArgument = Options.argument parse $
-  (Options.metavar "PATH")
+pathArgument = Options.argument parse $ Options.metavar "PATH"
   where
     parse =
-      maybe (fail "invalid path") pure =<< fmap Path.parse Options.str
+      maybe (fail "invalid path") pure . Path.parse =<< Options.str
 
 regexArgument :: Parser Regex
 regexArgument = Options.argument parse $

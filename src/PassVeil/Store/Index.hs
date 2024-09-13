@@ -1,6 +1,5 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TupleSections #-}
 
 module PassVeil.Store.Index
   ( Index,
@@ -80,7 +79,7 @@ type IndexM = StateT (Store, Index) IO
 -- | Convert the `Index` to an associative List.
 toList :: IndexM [(Path, Cached)]
 toList = do
-  index <- snd <$> State.get
+  index <- State.gets snd
 
   return $ HashMap.toList $ fromIndex index
 
@@ -88,11 +87,11 @@ modify :: (HashMap Path Cached -> HashMap Path Cached) -> IndexM ()
 modify f = State.modify' (second (Index . f . fromIndex))
 
 paths :: IndexM [Path]
-paths = List.sort . HashMap.keys . fromIndex . snd <$> State.get
+paths = State.gets (List.sort . HashMap.keys . fromIndex . snd)
 
 insert :: Path -> (Hash, Metadata) -> IndexM ()
 insert path (hash, metadata) = do
-  store <- fst <$> State.get
+  store <- State.gets fst
 
   let filePath = Store.filePathForHash store hash
 
@@ -113,7 +112,7 @@ clear = State.modify $ second $ const empty
 -- | Lookup `Path` in `Index`.
 lookup :: Path -> IndexM (Maybe Cached)
 lookup path = do
-  index <- fromIndex . snd <$> State.get
+  index <- State.gets (fromIndex . snd)
 
   return (HashMap.lookup path index)
 
@@ -139,7 +138,7 @@ refresh = do
       then do
         modified <- liftIO (Directory.getModificationTime filePath)
 
-        if (modified /= Cached.modified cached')
+        if modified /= Cached.modified cached'
           then do
             let key = (hash, whoami)
 

@@ -21,6 +21,9 @@
               pkg-config
               darcs
 
+              # lint
+              hlint
+
               # docs
               pandoc;
           };

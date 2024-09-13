@@ -22,7 +22,7 @@ import qualified Data.Binary            as B (Binary, decode, encode)
 
 --   are valid hex characters.
 
-data HexString =
+newtype HexString =
   HexString BS.ByteString
   deriving ( Show, Eq, Ord )
 
