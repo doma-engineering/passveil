@@ -323,12 +323,12 @@ verify' whoami path = do
 
     getIssuer input
       | "Good signature" `isInfixOf` input =
-        let fprPrefix = "Primary key fingerprint: "
-        in case filter (fprPrefix `isPrefixOf`) $ Text.lines input of
+        let usingKey i = "using" `isInfixOf` i && "key" `isInfixOf` i
+        in case filter usingKey $ Text.lines input of
           [] -> Nothing
           (fingerprintLine : _) ->
             let
-              k = last $ Text.splitOn ":" fingerprintLine
+              k = last $ Text.splitOn "key" fingerprintLine
               fpr = Text.filter (/= ' ') k
             in Just $ Fingerprint fpr
       | otherwise = Nothing
