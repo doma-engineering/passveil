@@ -10,7 +10,7 @@ import Control.Monad (forM_)
 import qualified Data.HashMap.Strict as HashMap
 import Options.Applicative (ParserInfo)
 import qualified Options.Applicative as Options
-import qualified PassVeil as PassVeil
+import qualified PassVeil
 import qualified PassVeil.Exit as Exit
 import qualified PassVeil.Options as Options
 import qualified PassVeil.Store as Store

@@ -8,67 +8,75 @@ import qualified Data.Text as Text
 
 import PassVeil.Store.Identity (Identity)
 import PassVeil.Store.Path (Path)
+import qualified PassVeil.Console as Console
 import qualified PassVeil.Store.Identity as Identity
 import qualified PassVeil.Store.Path as Path
 
 import System.Exit
 import qualified System.Exit as Exit
 
+die' :: String -> IO a
+die' msg = do
+  Console.withColor' Console.Vivid Console.Red $
+    putStrLn msg
+
+  Exit.exitFailure
+
 notFound :: Path -> IO a
 notFound path = do
   let path' = Text.unpack $ Path.fromPath path
 
-  Exit.die $ path' ++ " not found"
+  die' $ path' ++ " not found"
 
 alreadyExists :: Path -> IO a
 alreadyExists path = do
   let path' = Text.unpack $ Path.fromPath path
 
-  Exit.die $ path' ++ " already exists"
+  die' $ path' ++ " already exists"
 
 nothingToDo :: IO a
-nothingToDo = Exit.die "Nothing to do"
+nothingToDo = die' "Nothing to do"
 
 couldNotEdit :: IO a
-couldNotEdit = Exit.die "Could not edit"
+couldNotEdit = die' "Could not edit"
 
 couldNotRunEditor :: IO a
-couldNotRunEditor = Exit.die "Could not run EDITOR"
+couldNotRunEditor = die' "Could not run EDITOR"
 
 indexCorrupted :: IO a
-indexCorrupted = Exit.die "Index corrupted, aborting"
+indexCorrupted = die' "Index corrupted, aborting"
 
 directoryAlreadyExits :: FilePath -> IO a
 directoryAlreadyExits filePath =
-  Exit.die $ filePath <> " already exists, aborting"
+  die' $ filePath <> " already exists, aborting"
 
 orphaned :: IO a
-orphaned = Exit.die "Will not remove all receivers, aborting"
+orphaned = die' "Will not remove all receivers, aborting"
 
 repositoryDirty :: IO a
-repositoryDirty = Exit.die "Repository dirty, aborting"
+repositoryDirty = die' "Repository dirty, aborting"
 
 unknownIdentity :: Identity -> IO a
-unknownIdentity identity = Exit.die $
-  "Unkown identity: " <> Text.unpack (Identity.fromIdentity identity)
+unknownIdentity identity = die' $
+  "Unknown identity: " <> Text.unpack (Identity.fromIdentity identity)
 
 storeError :: IO a
-storeError = Exit.die "Could not open store"
+storeError = die' "Could not open store"
 
 encryptFailed :: IO a
-encryptFailed = Exit.die "Encryption failed"
+encryptFailed = die' "Encryption failed"
 
 signFailed :: IO a
-signFailed = Exit.die "Signing failed"
+signFailed = die' "Signing failed"
 
 decryptFailed :: IO a
-decryptFailed = Exit.die "Decryption failed"
+decryptFailed = die' "Decryption failed"
 
 verifyFailed :: IO a
-verifyFailed = Exit.die "Verification failed"
+verifyFailed = die' "Verification failed"
 
 suspicionsContent :: IO a
-suspicionsContent = Exit.die "Suspicious content, aborting"
+suspicionsContent = die' "Suspicious content, aborting"
 
 corruptedContent :: String -> IO a
-corruptedContent err = Exit.die $ "Content corrupted: " <> err
+corruptedContent err = die' $ "Content corrupted: " <> err

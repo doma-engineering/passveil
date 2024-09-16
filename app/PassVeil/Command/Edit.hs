@@ -10,7 +10,7 @@ import Control.Monad (forM_, when)
 import qualified Data.HashMap.Strict as HashMap
 import Options.Applicative (ParserInfo)
 import qualified Options.Applicative as Options
-import qualified PassVeil as PassVeil
+import qualified PassVeil
 import qualified PassVeil.Editor as Editor
 import qualified PassVeil.Exit as Exit
 import qualified PassVeil.Options as Options
@@ -58,8 +58,7 @@ run mStore options = do
   let payload = Content.payload content
 
   Editor.edit (mGenerated <|> Just payload) $ \secret -> do
-    when (secret == payload) $
-      Exit.nothingToDo
+    when (secret == payload) Exit.nothingToDo
 
     updated <- Content.update whoami secret content
 

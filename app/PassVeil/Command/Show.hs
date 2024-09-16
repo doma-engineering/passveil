@@ -6,6 +6,7 @@ module PassVeil.Command.Show
 where
 
 import Control.Applicative ((<**>))
+import Data.Bool (bool)
 import qualified Data.Text as T
 import qualified Data.Text.IO as Text
 import Options.Applicative (ParserInfo)
@@ -21,7 +22,8 @@ import PassVeil.Store.Path (Path)
 
 data Options = Options
   { optionsPath :: !Path,
-    optionsBatchMode :: !Bool
+    optionsBatchMode :: !Bool,
+    optionsUnverified :: !Bool
   }
 
 parse :: ParserInfo Options
@@ -30,11 +32,18 @@ parse =
     (parser <**> Options.helper)
     (Options.progDesc "Show password of a path")
   where
-    parser = Options <$> Options.pathArgument <*> Options.batchFlag
+    parser = Options
+      <$> Options.pathArgument
+      <*> Options.batchFlag
+      <*> Options.unverifiedFlag
 
 run :: Maybe FilePath -> Options -> IO ()
 run mStore options = do
-  store <- PassVeil.getStore mStore
+  store <- bool
+    PassVeil.getStore
+    PassVeil.getUnsignedStore
+    (optionsUnverified options)
+    mStore
 
   let path = optionsPath options
       fingerprint = Store.whoami store

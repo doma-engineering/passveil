@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards  #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module PassVeil.Store.Generator
   ( Generator
   , parse
@@ -10,6 +11,7 @@ where
 import Control.Applicative ((<|>), many, optional, some)
 import Control.Monad.Except (throwError)
 
+import Data.Functor (($>))
 import Data.Text (Text)
 import Data.Void (Void)
 import qualified Data.Char as Char
@@ -47,7 +49,7 @@ shuffle source = go source []
     go [a] acc = return (a:acc)
     go src acc = do
       idx <- Random.randomRIO (0, length src - 1)
-      let (front, (s:back)) = splitAt idx src
+      let (front, s : back) = splitAt idx src
 
       go (front ++ back) (s:acc)
 
@@ -143,11 +145,11 @@ parse' = Generator <$> length' <*> alpha <*> many minimum' <* Parsec.eof
     leadingDigitChar = Parsec.satisfy
       (\c -> Char.isDigit c && c /= '0')
 
-    digit' = Parsec.char 'd' *> pure digit
-    upper' = Parsec.char 'u' *> pure upper
-    lower' = Parsec.char 'l' *> pure lower
-    punct' = Parsec.char 'p' *> pure punctuation
-    sym' = Parsec.char 's' *> pure symbol
+    digit' = Parsec.char 'd' $> digit
+    upper' = Parsec.char 'u' $> upper
+    lower' = Parsec.char 'l' $> lower
+    punct' = Parsec.char 'p' $> punctuation
+    sym' = Parsec.char 's' $> symbol
 
     printable' = digit'
              <|> upper'

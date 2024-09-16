@@ -14,7 +14,7 @@ import System.FilePath ((</>))
 import qualified System.Directory as Directory
 
 import PassVeil.Store.Path (Path)
-import qualified PassVeil as PassVeil
+import qualified PassVeil
 import qualified PassVeil.Exit as Exit
 import qualified PassVeil.Options as Options
 import qualified PassVeil.Store as Store

@@ -71,7 +71,7 @@ record store reason = do
   repositoryExists <- doesRepositoryExist store
 
   when repositoryExists $ do
-    Process.callProcess "darcs" $
+    Process.callProcess "darcs"
       [ "record"
       , "--quiet"
       , "--no-cache"

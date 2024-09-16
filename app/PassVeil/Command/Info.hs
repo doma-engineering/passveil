@@ -9,6 +9,7 @@ where
 import Control.Applicative ((<**>))
 import Control.Monad (forM_, foldM)
 
+import Data.Bool (bool)
 import Data.HashMap.Strict (HashMap)
 import Data.Maybe (fromMaybe)
 import Data.Set (Set)
@@ -28,12 +29,14 @@ import PassVeil.Store.Metadata (Metadata)
 import PassVeil.Store.Path (Path)
 import PassVeil.Store.Timestamp (Timestamp(Timestamp))
 import PassVeil.Store.Uid (Uid)
-import qualified PassVeil as PassVeil
+import qualified PassVeil
 import qualified PassVeil.Console as Console
 import qualified PassVeil.Options as Options
+import qualified PassVeil.Store as Store
 import qualified PassVeil.Store.Cached as Cached
 import qualified PassVeil.Store.Fingerprint as Fingerprint
 import qualified PassVeil.Store.Gpg as Gpg
+import qualified PassVeil.Store.Hash as Hash
 import qualified PassVeil.Store.Log as Log
 import qualified PassVeil.Store.Metadata as Metadata
 import qualified PassVeil.Store.Timestamp as Timestamp
@@ -41,23 +44,38 @@ import qualified PassVeil.Store.Trust as Trust
 import qualified PassVeil.Store.Uid as Uid
 
 data Options = Options
-  { optionsPath :: !Path }
+  { optionsPath :: !Path
+  , optionsUnverified :: !Bool
+  }
 
 parse :: ParserInfo Options
 parse = Options.info
   (parser <**> Options.helper)
   (Options.progDesc "Show key information")
   where
-    parser = Options <$> Options.pathArgument
+    parser = Options
+      <$> Options.pathArgument
+      <*> Options.unverifiedFlag
 
 run :: Maybe FilePath -> Options -> IO ()
 run mStore options = do
-  store <- PassVeil.getStore mStore
+  store <- bool
+    PassVeil.getStore
+    PassVeil.getUnsignedStore
+    (optionsUnverified options)
+    mStore
 
   let path = optionsPath options
+      fingerprint = Store.whoami store
+      key = (Hash.compute path, fingerprint)
 
-  PassVeil.getCached store path >>=
-    printMetadata . Cached.metadata
+  PassVeil.getCached store path >>= \cached -> do
+    let metadata = Cached.metadata cached
+        issuer = Timestamp.by (Metadata.issued metadata)
+
+    verified <- Store.verify key issuer store
+
+    printMetadata verified metadata
 
 collectFingerprints :: Metadata -> Set Fingerprint
 collectFingerprints metadata = Set.unions
@@ -74,8 +92,8 @@ buildKnown acc fingerprint = do
 
   return (HashMap.insert fingerprint uids acc)
 
-printMetadata :: Metadata -> IO ()
-printMetadata metadata = do
+printMetadata :: Bool -> Metadata -> IO ()
+printMetadata verified metadata = do
   tz <- Time.getCurrentTimeZone
   known <- foldM buildKnown HashMap.empty (collectFingerprints metadata)
 
@@ -87,7 +105,10 @@ printMetadata metadata = do
     printTimestamp tz known timestamp
 
   Text.putStrLn "\nissued:"
-  printTimestamp tz known (Metadata.issued metadata)
+  if verified
+     then printTimestamp tz known (Metadata.issued metadata)
+     else Console.withColor Console.Red $
+       printTimestamp' tz known (Metadata.issued metadata)
 
   Text.putStrLn "\ntrusted:"
   let trusted = List.sortOn (Timestamp.at . snd)
@@ -103,7 +124,7 @@ printMetadata metadata = do
         $ Metadata.insiders metadata
    in Console.spacer $ flip map insiders $ \(subject, timestamp) -> do
         printTime tz (Timestamp.at timestamp)
-        printFingerprint 3 known (subject)
+        printFingerprint 3 known subject
 
   Text.putStrLn "\nlog:"
   Console.spacer $ flip map (Metadata.log metadata) $ \log' -> do
@@ -124,14 +145,22 @@ printMetadata metadata = do
         printFingerprint 0 known (Trust.subject trust)
 
 printTime :: TimeZone -> UTCTime -> IO ()
-printTime tz at = do
-  Console.withColor Console.Cyan $ do
+printTime tz at = Console.withColor Console.Cyan $
+  printTime' tz at
+
+printTime' :: TimeZone -> UTCTime -> IO ()
+printTime' tz at = do
     let localTime = Time.utcToLocalTime tz at
     putStrLn $ ' ' : Time.formatTime Time.defaultTimeLocale "%c" localTime
 
 printTimestamp :: TimeZone -> Known -> Timestamp -> IO ()
 printTimestamp tz known Timestamp{Timestamp.at = at, Timestamp.by = by} = do
   printTime tz at
+  printFingerprint 3 known by
+
+printTimestamp' :: TimeZone -> Known -> Timestamp -> IO ()
+printTimestamp' tz known Timestamp{Timestamp.at = at, Timestamp.by = by} = do
+  printTime' tz at
   printFingerprint 3 known by
 
 printFingerprint :: Int -> Known -> Fingerprint -> IO ()

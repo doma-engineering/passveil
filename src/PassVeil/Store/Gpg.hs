@@ -11,6 +11,9 @@ module PassVeil.Store.Gpg
     DecryptException (..),
     decrypt,
 
+    -- * Verification
+    verify,
+
     -- * Queries
     whois,
     uids,
@@ -199,7 +202,7 @@ decrypt signed store whoami (hash, fpr) mPayload = do
             Timestamp.by $
               Metadata.issued metadata
 
-      mVerified <- verify whoami path
+      mVerified <- verify' whoami path
 
       case mVerified of
         Nothing -> throwIO VerifyFailed
@@ -279,32 +282,53 @@ uids fpr' =
         filter ("uid" `isPrefixOf`) $
           Text.lines contents
 
-verify :: Fingerprint -> FilePath -> IO (Maybe Fingerprint)
-verify whoami' path = do
-  let gpg =
-        Process.proc
-          "gpg"
-          [ "--default-key",
-            Fingerprint.toFilePath whoami',
-            "--quiet",
-            "--verify",
-            path <.> "sig",
-            path
-          ]
-      gpgPipe = gpg {Process.std_err = Process.CreatePipe}
-
-  (_, _, Just hOut, h) <- Process.createProcess gpgPipe
-
-  mIssuer <- getIssuer <$> Text.hGetContents hOut
-  exitCode <- Process.waitForProcess h
-
-  when (exitCode /= ExitSuccess) $
-    throwIO VerifyFailed
-
-  return mIssuer
+verify :: Bool -> FilePath -> Fingerprint -> Key -> Fingerprint -> IO Bool
+verify signed store whoami (hash, fpr) issuer
+  | signed = (Just issuer ==) <$> verify' whoami path
+  | otherwise = return True
   where
-    getIssuer input =
-      let k = filter ("using RSA key" `isInfixOf`) (Text.lines input)
-       in case k of
-            [] -> Nothing
-            key : _ -> Just (Fingerprint (Text.drop 34 key))
+    hash' = Hash.toFilePath hash
+    fpr' = Fingerprint.toFilePath fpr
+    path = store </> hash' </> fpr'
+
+verify' :: Fingerprint -> FilePath -> IO (Maybe Fingerprint)
+verify' whoami path = do
+  exists <- Directory.doesFileExist sigPath
+
+  if exists
+     then gpgVerify
+     else return Nothing
+  where
+    sigPath = path <.> "sig"
+
+    gpgVerify = do
+      let gpg = Process.proc "gpg"
+            [ "--default-key", Fingerprint.toFilePath whoami
+            , "--quiet"
+            , "--verify"
+            , sigPath
+            , path
+            ]
+          gpgPipe = gpg { Process.std_err = Process.CreatePipe }
+
+      (_, _, Just hOut, h) <- Process.createProcess gpgPipe
+
+      mIssuer <- getIssuer <$> Text.hGetContents hOut
+      exitCode <- Process.waitForProcess h
+
+      when (exitCode /= ExitSuccess) $
+        throwIO VerifyFailed
+
+      return mIssuer
+
+    getIssuer input
+      | "Good signature" `isInfixOf` input =
+        let fprPrefix = "Primary key fingerprint: "
+        in case filter (fprPrefix `isPrefixOf`) $ Text.lines input of
+          [] -> Nothing
+          (fingerprintLine : _) ->
+            let
+              k = last $ Text.splitOn ":" fingerprintLine
+              fpr = Text.filter (/= ' ') k
+            in Just $ Fingerprint fpr
+      | otherwise = Nothing

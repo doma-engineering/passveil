@@ -174,6 +174,17 @@ creation date of the original password but updates the _issued_ information.
 
 Print help for **move**.
 
+_**copy** PATH PATH_
+--------------------
+
+Copy a password to another location within the store. Overwriting existing
+passwords via this command is not permitted. This command does not change the
+creation date of the original password but updates the _issued_ information.
+
+**-h**, **\-\-help**
+
+Print help for **copy**.
+
 _**edit** \[\-\-generate RULES] PATH_
 -------------------------------------
 
@@ -209,10 +220,14 @@ Show password of a key. If the store is signed passveil(1) is going to check if
 the created file was signed using the gpg2(1) key that is claiming to have
 issued the encrypted file.
 
+**\[\-\-unverified\]**
+
+Override verification on signed stores. Display the stored secret whether it is
+properly signed or not.
+
 **-h**, **\-\-help**
 
 Print help for **show**.
-
 _**list** \[\-\-tree] \[PATH]_
 ------------------------------
 
@@ -247,7 +262,8 @@ _**info** PATH_
 Show key information. Throughout the lifetime of a key, information is getting
 tracked by passveil(1). This information can be accessed with this information.
 Each time stamp consists of the time and date when on commandhas been issued as
-well as the gpg2(1) key that was used to issue it.
+well as the gpg2(1) key that was used to issue it. When verification on a signed
+store fails the timestamp is colored *red*.
 
 * **created**
 
@@ -286,6 +302,10 @@ Every **allow** and **deny** command that has been issued on the password since
 the last **edit** command happened. This log is used to compute the list of
 _trusted_ gpg2(1) keys as well as the _insiders_ (keys that were able to decrypt
 the password at some point in time, since the last **edit** command).
+
+**\[\-\-unverified\]**
+
+On signed stores, skip verifying the issuer.
 
 **-h**, **\-\-help**
 

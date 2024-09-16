@@ -73,8 +73,15 @@ whois identity =
       (Exit.unknownIdentity identity)
       pure
 
+
+getStore' :: (Store -> Store) -> Maybe FilePath -> IO Store
+getStore' f = Store.load >=> maybe Exit.storeError (pure . f)
+
 getStore :: Maybe FilePath -> IO Store
-getStore = Store.load >=> maybe Exit.storeError pure
+getStore = getStore' id
+
+getUnsignedStore :: Maybe FilePath -> IO Store
+getUnsignedStore = getStore' (\store -> store { Store.signed = False })
 
 withIndex :: Bool -> Store -> IndexM a -> IO a
 withIndex update store act = do

@@ -6,7 +6,7 @@ module PassVeil.Tree (draw) where
 import Data.Bool (bool)
 import Data.List (groupBy)
 import Data.List.NonEmpty (NonEmpty((:|)))
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, mapMaybe)
 import Data.Text (Text)
 import Data.Tree (Tree)
 import qualified Data.List.NonEmpty as NonEmpty
@@ -31,7 +31,7 @@ fromPaths = Tree.unfoldTree build . (PathNode "/",) . map Path.explode
   where
     grp xs ys = NonEmpty.head xs == NonEmpty.head ys
 
-    build (node, rest) = (node, catMaybes $ map level (groupBy grp rest))
+    build (node, rest) = (node, mapMaybe level (groupBy grp rest))
 
     level ns@((node :| rest):_) = Just
       ( bool PathNode KeyNode (null rest) node

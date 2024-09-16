@@ -4,6 +4,7 @@ module PassVeil.Store
   ( Store,
     init,
     load,
+    signed,
     toStorePath,
     toFilePath,
     toIndexPath,
@@ -16,6 +17,7 @@ module PassVeil.Store
     toList,
     doesContentExist,
     filePathForHash,
+    verify,
 
     -- * Modifying operations
     lookup,
@@ -25,6 +27,7 @@ module PassVeil.Store
 where
 
 import Control.Monad (foldM, forM, unless, when)
+import Data.Functor ((<&>))
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -170,6 +173,21 @@ lookup key@(hash, fingerprint) store mPayload = do
     then decrypt store key mPayload
     else return Nothing
 
+-- | Verify if `Key` in `Store` has been issued via the given `Fingerprint`.
+verify :: Key -> Fingerprint -> Store -> IO Bool
+verify key@(hash, fingerprint) issuer store = do
+  exists <- doesContentExist store hash fingerprint
+
+  if exists
+     then Gpg.verify
+       (signed store)
+       (toStorePath store)
+       (whoami store)
+       key
+       issuer
+
+     else return False
+
 -- | Returns visible `Hash` values.
 hashes :: Store -> IO [Hash]
 hashes store = do
@@ -195,7 +213,7 @@ hashes store = do
 -- `Gpg.DecryptException`.
 toList :: Store -> Maybe Payload -> IO [(Hash, Content)]
 toList store mPayload =
-  hashes store >>= traverse fetch >>= return . catMaybes
+  (hashes store >>= traverse fetch) <&> catMaybes
   where
     fingerprint = whoami store
     fetch hash = fmap (hash,) <$> decrypt store (hash, fingerprint) mPayload
