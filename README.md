@@ -7,7 +7,7 @@
  3. Add yourself to doma-engineering's personas repository. We don't
     have protected branches, so you'll have to ask someone to bless the
     commit hash that has your public credentials.
- 4. Download `passveil` binary from [here](https://ctf.cdn.doma.dev/passveil).
+ 4. Download the latest `passveil` binary from the releases tab here.
  5. Put the binary into your PATH. I use `~/.local/bin`.
  6. Download all the gpg2 keys from the repository and add them to your
     GPG2 keyring with `gpg2 --import keyfile`. This is required to be
