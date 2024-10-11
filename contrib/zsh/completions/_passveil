@@ -1,0 +1,100 @@
+#compdef passveil
+
+local -a commands
+commands=(
+    'show:Show an entry'
+    'search:Search entries'
+    'list:List entries'
+    'info:Show info'
+    'insert:Insert an entry'
+    'edit:Edit an entry'
+    'move:Move an entry'
+    'delete:Delete an entry'
+    'allow:Allow user access'
+    'deny:Deny user access'
+    'distrust:Distrust user'
+    'init:Initialize passveil'
+    'sync:Sync passveil'
+    'undo:Undo last action'
+)
+
+local context state line ret=1
+typeset -A opt_args
+
+_arguments -C \
+  '--store=[Specify the store]:store:_files -/' \
+  '--version[Show version]' \
+  '-h[Show help]' \
+  '--help[Show help]' \
+  '1:command:->command' \
+  '*::args:->args'
+
+case $state in
+  command)
+    _describe 'command' commands
+    ;;
+  args)
+    case $words[1] in
+      show|info|edit|move|delete|allow|deny|list)
+        # Complete passveil entries
+        local entries
+        if [[ -n ${opt_args[--store]} ]]; then
+          entries=(${(f)"$(passveil --store ${opt_args[--store]} list 2>/dev/null)"})
+        else
+          entries=(${(f)"$(passveil list 2>/dev/null)"})
+        fi
+        _values 'entries' $entries
+        ;;
+      insert)
+        # Complete directories
+        local paths
+        if [[ -n ${opt_args[--store]} ]]; then
+          paths=(${(u)${(f)"$(passveil --store ${opt_args[--store]} list 2>/dev/null)"}:h})
+        else
+          paths=(${(u)${(f)"$(passveil list 2>/dev/null)"}:h})
+        fi
+        _values 'paths' $paths
+        ;;
+      allow|deny)
+        if [[ $words[CURRENT-1] == $words[1] ]]; then
+          # Complete entries
+          local entries
+          if [[ -n ${opt_args[--store]} ]]; then
+            entries=(${(f)"$(passveil --store ${opt_args[--store]} list 2>/dev/null)"})
+          else
+            entries=(${(f)"$(passveil list 2>/dev/null)"})
+          fi
+          _values 'entries' $entries
+        else
+          # Complete GPG user IDs
+          local gpg_ids=(${(f)"$(gpg --list-keys --with-colons 2>/dev/null | awk -F: '/^uid:/ {print $10}')" })
+          _values 'GPG IDs' $gpg_ids
+        fi
+        ;;
+      init|distrust)
+        # Complete GPG user IDs
+        local gpg_ids=(${(f)"$(gpg --list-keys --with-colons 2>/dev/null | awk -F: '/^uid:/ {print $10}')" })
+        _values 'GPG IDs' $gpg_ids
+        ;;
+      move)
+        if [[ $words[CURRENT-1] == $words[1] ]]; then
+          # Complete entries
+          local entries
+          if [[ -n ${opt_args[--store]} ]]; then
+            entries=(${(f)"$(passveil --store ${opt_args[--store]} list 2>/dev/null)"})
+          else
+            entries=(${(f)"$(passveil list 2>/dev/null)"})
+          fi
+          _values 'entries' $entries
+        else
+          # Complete directories
+          _files -/
+        fi
+        ;;
+      *)
+        ;;
+    esac
+    ;;
+esac
+
+return ret
