@@ -26,6 +26,8 @@
             install -Dm644 contrib/bash/completions/passveil.bash "$out/share/bash-completion/completions/passveil"
             install -Dm644 contrib/zsh/completions/_passveil "$out/share/zsh/site-functions/_passveil"
             install -Dm644 contrib/fish/completions/passveil.fish "$out/share/fish/vendor_completions.d/passveil.fish"
+
+	    install -Dm755 scripts/passveil_unsafe_rollback "$out/bin/passveil_unsafe_rollback"
           '';
         });
       in {
