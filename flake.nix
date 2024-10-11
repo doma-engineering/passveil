@@ -12,9 +12,24 @@
       imports = [
         inputs.haskell-flake.flakeModule
       ];
-      perSystem = { self', system, lib, config, pkgs, ... }: {
-        haskellProjects.default = {
+      perSystem = { pkgs, ... }:
+      let
+        hp = pkgs.haskellPackages;
 
+        # Define the base passveil package
+        passveil = hp.callCabal2nix "passveil" ./. {};
+
+        # Override attributes to add postInstall and nativeBuildInputs
+        passveilWithCompletions = passveil.overrideAttrs (oldAttrs: {
+          postInstall = ''
+            ${oldAttrs.postInstall or ""}
+            install -Dm644 contrib/bash/completions/passveil.bash "$out/share/bash-completion/completions/passveil"
+            install -Dm644 contrib/zsh/completions/_passveil "$out/share/zsh/site-functions/_passveil"
+            install -Dm644 contrib/fish/completions/passveil.fish "$out/share/fish/vendor_completions.d/passveil.fish"
+          '';
+        });
+      in {
+        haskellProjects.default = {
           # For `nix develop`:
           devShell.tools = hp: {
             inherit (pkgs)
@@ -27,10 +42,10 @@
               # docs
               pandoc;
           };
-
         };
+
         # For `nix build` & `nix run`:
-        packages.default = self'.packages.passveil;
+        packages.default = passveilWithCompletions;
       };
     };
 }
